@@ -17,7 +17,15 @@ class User implements UserInterface
     /**
      * @ORM\Column(type="string", length=25, unique=true)
      */
-    private $username;
+    public $username;
+
+    /**
+     * @param mixed $username
+     */
+    public function setUsername($username)
+    {
+        $this->username = $username;
+    }
     /**
      * @ORM\Column(type="string", length=500)
      */
@@ -26,10 +34,15 @@ class User implements UserInterface
      * @ORM\Column(name="is_active", type="boolean")
      */
     private $isActive;
-    public function __construct($username)
+
+    /**
+     * @ORM\Column(type="json")
+     */
+    private $roles = [];
+
+    public function __construct()
     {
         $this->isActive = true;
-        $this->username = $username;
     }
     public function getUsername()
     {
@@ -47,11 +60,56 @@ class User implements UserInterface
     {
         $this->password = $password;
     }
+
     public function getRoles()
     {
-        return array('ROLE_USER');
+        $roles = $this->roles;
+        // guarantee every user at least has ROLE_USER
+        $roles[] = 'ROLE_SUPER_ADMIN';
+
+        return array_unique($roles);
+    }
+
+    /**
+     * @param mixed $roles
+     */
+    public function setRoles($roles)
+    {
+        $this->roles = $roles;
     }
     public function eraseCredentials()
     {
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getId()
+    {
+        return $this->id;
+    }
+
+    /**
+     * @param mixed $id
+     */
+    public function setId($id)
+    {
+        $this->id = $id;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getisActive()
+    {
+        return $this->isActive;
+    }
+
+    /**
+     * @param mixed $isActive
+     */
+    public function setIsActive($isActive)
+    {
+        $this->isActive = $isActive;
     }
 }

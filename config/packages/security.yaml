@@ -2,7 +2,8 @@ security:
     encoders:
         App\Entity\User:
             algorithm: bcrypt
-
+    role_hierarchy:
+            ROLE_SUPER_ADMIN:  ROLE_SUPER_ADMIN
     providers:
         entity_provider:
             entity:
@@ -10,6 +11,24 @@ security:
                 property: username
 
     firewalls:
+        main:
+            anonymous: ~
+            form_login:
+                login_path: app_login
+                check_path: login
+                csrf_parameter: _csrf_security_token
+                csrf_token_id: a_private_string
+                default_target_path: after_login_route_name
+                always_use_default_target_path: true
+                use_referer: true
+                failure_path: login_failure_route_name
+                target_path_parameter: go_to
+                failure_path_parameter: back_to
+            logout:
+                path:   app_logout
+            guard:
+                authenticators:
+                    - App\Security\LoginFormAuthenticator
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
@@ -17,16 +36,22 @@ security:
             pattern:  ^/login
             stateless: true
             anonymous: true
-            json_login:
-                check_path: /login_check
-                success_handler: lexik_jwt_authentication.handler.authentication_success
-                failure_handler: lexik_jwt_authentication.handler.authentication_failure
-
+            guard:
+                authenticators:
+                    - App\Security\LoginFormAuthenticator
+            logout:
+                path: app_logout
+                # where to redirect after logout
+                # target: app_any_route
         register:
             pattern:  ^/register
             stateless: true
             anonymous: true
-
+        secured_area:
+            # ...
+            form_login:
+                # ...
+                csrf_token_generator: security.csrf.token_manager
         api:
             pattern:  ^/api
             stateless: true
@@ -35,8 +60,8 @@ security:
             guard:
                 authenticators:
                     - lexik_jwt_authentication.jwt_token_authenticator
-
     access_control:
+        - { path: ^/admin, roles: ROLE_SUPER_ADMIN }
         - { path: ^/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/register, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
